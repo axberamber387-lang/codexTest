@@ -7,7 +7,8 @@ import {
   hitsSnake,
   isOutOfBounds,
   placeFood,
-  queueDirection
+  queueDirection,
+  wrapPosition
 } from "../src/snakeLogic.js";
 
 test("queueDirection ignores direct reversals", () => {
@@ -51,7 +52,7 @@ test("advanceGame grows the snake and increments score when food is eaten", () =
   assert.notDeepEqual(next.food, { x: 5, y: 4 });
 });
 
-test("advanceGame ends the game when the snake hits a wall", () => {
+test("advanceGame wraps the snake around board edges", () => {
   const initial = {
     snake: [
       { x: 15, y: 5 },
@@ -67,8 +68,9 @@ test("advanceGame ends the game when the snake hits a wall", () => {
 
   const next = advanceGame(initial, () => 0);
 
-  assert.equal(next.status, "game-over");
+  assert.equal(next.status, "running");
   assert.equal(next.score, 2);
+  assert.deepEqual(next.snake[0], { x: 0, y: 5 });
 });
 
 test("placeFood returns an unoccupied cell", () => {
@@ -88,4 +90,5 @@ test("collision helpers identify bounds and self overlap", () => {
   assert.equal(isOutOfBounds({ x: 8, y: 8 }, 16), false);
   assert.equal(hitsSnake({ x: 2, y: 2 }, [{ x: 2, y: 2 }]), true);
   assert.equal(hitsSnake({ x: 1, y: 2 }, [{ x: 2, y: 2 }]), false);
+  assert.deepEqual(wrapPosition({ x: -1, y: 16 }, 16), { x: 15, y: 0 });
 });

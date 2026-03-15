@@ -24,6 +24,13 @@ function positionsMatch(a, b) {
   return a.x === b.x && a.y === b.y;
 }
 
+export function wrapPosition(position, gridSize) {
+  return {
+    x: (position.x + gridSize) % gridSize,
+    y: (position.y + gridSize) % gridSize
+  };
+}
+
 export function createInitialState(random = Math.random) {
   const snake = INITIAL_SNAKE.map((segment) => ({ ...segment }));
 
@@ -55,11 +62,14 @@ export function advanceGame(state, random = Math.random) {
   const direction = queueDirection(state.direction, state.queuedDirection);
   const head = state.snake[0];
   const vector = DIRECTION_VECTORS[direction];
-  const nextHead = { x: head.x + vector.x, y: head.y + vector.y };
+  const nextHead = wrapPosition(
+    { x: head.x + vector.x, y: head.y + vector.y },
+    GRID_SIZE
+  );
   const ateFood = positionsMatch(nextHead, state.food);
   const collisionBody = ateFood ? state.snake : state.snake.slice(0, -1);
 
-  if (isOutOfBounds(nextHead, GRID_SIZE) || hitsSnake(nextHead, collisionBody)) {
+  if (hitsSnake(nextHead, collisionBody)) {
     return {
       ...state,
       direction,
