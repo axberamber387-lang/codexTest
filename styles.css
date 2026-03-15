@@ -57,6 +57,36 @@ body {
   aspect-ratio: 1 / 1;
 }
 
+.board-wrap {
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(244, 241, 232, 0.88);
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay-card {
+  width: min(100%, 18rem);
+  padding: 1rem;
+  border: 2px solid #1f241f;
+  background: #fcfbf7;
+  text-align: center;
+}
+
+.overlay-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+
 .cell {
   border: 1px solid rgba(31, 36, 31, 0.08);
 }

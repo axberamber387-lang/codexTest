@@ -8,8 +8,10 @@ const state = {
 };
 
 const board = document.querySelector("[data-board]");
+const overlay = document.querySelector("[data-overlay]");
 const scoreValue = document.querySelector("[data-score]");
 const statusValue = document.querySelector("[data-status]");
+const startButton = document.querySelector("[data-start]");
 const restartButton = document.querySelector("[data-restart]");
 const controlButtons = document.querySelectorAll("[data-direction]");
 
@@ -33,6 +35,12 @@ function stopLoop() {
 }
 
 function restartGame() {
+  stopLoop();
+  state.game = createInitialState();
+  render();
+}
+
+function startGame() {
   state.game = {
     ...createInitialState(),
     status: "running"
@@ -42,15 +50,14 @@ function restartGame() {
 }
 
 function setDirection(direction) {
+  if (state.game.status === "idle") {
+    return;
+  }
+
   state.game = {
     ...state.game,
-    queuedDirection: queueDirection(state.game.direction, direction),
-    status: state.game.status === "idle" ? "running" : state.game.status
+    queuedDirection: queueDirection(state.game.direction, direction)
   };
-
-  if (state.timerId === null && state.game.status === "running") {
-    startLoop();
-  }
 
   render();
 }
@@ -81,11 +88,12 @@ function render() {
   }
 
   scoreValue.textContent = String(state.game.score);
+  overlay.hidden = state.game.status !== "idle";
 
   if (state.game.status === "game-over") {
     statusValue.textContent = "Game over";
   } else if (state.game.status === "idle") {
-    statusValue.textContent = "Press an arrow key or WASD";
+    statusValue.textContent = "Press Start game";
   } else {
     statusValue.textContent = "Running";
   }
@@ -116,6 +124,7 @@ window.addEventListener("keydown", (event) => {
   setDirection(direction);
 });
 
+startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", restartGame);
 
 controlButtons.forEach((button) => {

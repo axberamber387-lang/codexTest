@@ -12,11 +12,20 @@
         <h1 class="title">Snake</h1>
         <div class="meta">
           <div class="panel">Score: <strong data-score>0</strong></div>
-          <div class="panel">Status: <strong data-status>Press an arrow key or WASD</strong></div>
+          <div class="panel">Status: <strong data-status>Press Start game</strong></div>
         </div>
       </header>
 
-      <section class="board" data-board aria-label="Snake board"></section>
+      <section class="board-wrap">
+        <section class="board" data-board aria-label="Snake board"></section>
+        <div class="overlay" data-overlay>
+          <div class="overlay-card">
+            <h2 class="overlay-title">Start game</h2>
+            <p class="note">Press the button below, then use arrow keys or WASD to steer.</p>
+            <button class="restart" type="button" data-start>Start game</button>
+          </div>
+        </div>
+      </section>
 
       <footer class="footer">
         <div class="controls" aria-label="On-screen controls">
@@ -30,7 +39,7 @@
 
         <div class="panel">
           <button class="restart" type="button" data-restart>Restart</button>
-          <p class="note">Use arrow keys or WASD to steer. The game ends on wall or self collision.</p>
+          <p class="note">Start the game first, then use arrow keys or WASD to steer. The game ends on wall or self collision.</p>
         </div>
       </footer>
     </main>
