@@ -109,6 +109,46 @@ body {
   gap: 1rem;
 }
 
+.game-screen {
+  display: grid;
+  gap: 1rem;
+}
+
+.menu-screen {
+  display: grid;
+}
+
+.menu-screen[hidden],
+.game-screen[hidden],
+.overlay[hidden] {
+  display: none;
+}
+
+.menu-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.game-card {
+  border: 2px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 1.1rem;
+  cursor: pointer;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.game-card strong {
+  font-size: 1.2rem;
+}
+
+.game-card span {
+  line-height: 1.4;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -211,6 +251,17 @@ body {
   flex-wrap: wrap;
 }
 
+.action-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .controls {
   display: grid;
   grid-template-columns: repeat(3, 3rem);
@@ -236,6 +287,51 @@ body {
   font-size: 0.9rem;
 }
 
+.sudoku-wrap {
+  padding: 1rem;
+}
+
+.sudoku-board {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  width: min(100%, 30rem);
+  margin: 0 auto;
+  border: 2px solid var(--panel-border);
+  background: var(--board-bg);
+}
+
+.sudoku-cell {
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--cell-border);
+  background: color-mix(in srgb, var(--panel-bg) 72%, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.sudoku-fixed {
+  background: color-mix(in srgb, var(--snake-body) 18%, var(--panel-bg));
+  font-weight: 700;
+}
+
+.sudoku-selected {
+  outline: 3px solid var(--food-color);
+  outline-offset: -3px;
+}
+
+.sudoku-conflict {
+  background: color-mix(in srgb, var(--food-color) 30%, var(--panel-bg));
+}
+
+.sudoku-block-right {
+  border-right: 2px solid var(--panel-border);
+}
+
+.sudoku-block-bottom {
+  border-bottom: 2px solid var(--panel-border);
+}
+
 @media (max-width: 640px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -249,6 +345,10 @@ body {
   .header,
   .footer {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .button-row {
     flex-direction: column;
   }
 }

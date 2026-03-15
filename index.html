@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snake</title>
+    <title>Arcade</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -24,7 +24,23 @@
 
       <section class="app">
         <header class="header">
-          <h1 class="title">Snake</h1>
+          <h1 class="title" data-app-title>Arcade</h1>
+        </header>
+
+        <section class="menu-screen" data-game-menu>
+          <div class="menu-grid">
+            <button class="game-card" type="button" data-open-game="snake">
+              <strong>Snake</strong>
+              <span>Classic arcade snake with speed, themes, sound and wrap-around movement.</span>
+            </button>
+            <button class="game-card" type="button" data-open-game="sudoku">
+              <strong>Sudoku</strong>
+              <span>Fill the 9x9 board, avoid wrong entries and solve a fresh puzzle from scratch.</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="game-screen" data-snake-screen hidden>
           <div class="meta">
             <div class="panel">Score: <strong data-score>0</strong></div>
             <div class="panel">Status: <strong data-status>Press Start game</strong></div>
@@ -44,34 +60,57 @@
               </select>
             </label>
           </div>
-        </header>
 
-        <section class="board-wrap">
-          <section class="board" data-board aria-label="Snake board"></section>
-          <div class="overlay" data-overlay>
-            <div class="overlay-card">
-              <h2 class="overlay-title">Start game</h2>
-              <p class="note">Choose a speed, press Start game, then use arrow keys or WASD to steer.</p>
-              <button class="restart" type="button" data-start>Start game</button>
+          <section class="board-wrap">
+            <section class="board" data-board aria-label="Snake board"></section>
+            <div class="overlay" data-overlay>
+              <div class="overlay-card">
+                <h2 class="overlay-title">Start game</h2>
+                <p class="note">Choose a speed, press Start game, then use arrow keys or WASD to steer.</p>
+                <button class="restart" type="button" data-start>Start game</button>
+              </div>
             </div>
-          </div>
+          </section>
+
+          <footer class="footer">
+            <div class="controls" aria-label="On-screen controls">
+              <span class="spacer" aria-hidden="true"></span>
+              <button type="button" data-direction="up">Up</button>
+              <span class="spacer" aria-hidden="true"></span>
+              <button type="button" data-direction="left">Left</button>
+              <button type="button" data-direction="down">Down</button>
+              <button type="button" data-direction="right">Right</button>
+            </div>
+
+            <div class="panel action-panel">
+              <div class="button-row">
+                <button class="restart" type="button" data-back-menu>Back to menu</button>
+                <button class="restart" type="button" data-restart>Restart</button>
+              </div>
+              <p class="note">Start the game first, use arrow keys or WASD to steer, and press Space to pause or resume.</p>
+            </div>
+          </footer>
         </section>
 
-        <footer class="footer">
-          <div class="controls" aria-label="On-screen controls">
-            <span class="spacer" aria-hidden="true"></span>
-            <button type="button" data-direction="up">Up</button>
-            <span class="spacer" aria-hidden="true"></span>
-            <button type="button" data-direction="left">Left</button>
-            <button type="button" data-direction="down">Down</button>
-            <button type="button" data-direction="right">Right</button>
+        <section class="game-screen" data-sudoku-screen hidden>
+          <div class="meta">
+            <div class="panel">Difficulty: <strong data-sudoku-difficulty>Easy</strong></div>
+            <div class="panel">Status: <strong data-sudoku-status>Select a cell to begin</strong></div>
           </div>
 
-          <div class="panel">
-            <button class="restart" type="button" data-restart>Restart</button>
-            <p class="note">Start the game first, use arrow keys or WASD to steer, and press Space to pause or resume.</p>
+          <section class="sudoku-wrap panel">
+            <div class="sudoku-board" data-sudoku-board aria-label="Sudoku board"></div>
+          </section>
+
+          <div class="panel action-panel">
+            <div class="button-row">
+              <button class="restart" type="button" data-back-menu>Back to menu</button>
+              <button class="restart" type="button" data-sudoku-new>New puzzle</button>
+              <button class="restart" type="button" data-sudoku-clear>Clear cell</button>
+            </div>
+            <p class="note">Click a cell, type 1-9 to fill it, and use Delete or Clear cell to erase your entry.</p>
           </div>
-        </footer>
+        </section>
       </section>
     </main>
 
