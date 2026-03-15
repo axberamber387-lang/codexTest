@@ -9,7 +9,8 @@ const SPEED_TICKS = {
 const state = {
   game: createInitialState(),
   timerId: null,
-  speed: "normal"
+  speed: "normal",
+  soundEnabled: true
 };
 
 const board = document.querySelector("[data-board]");
@@ -17,6 +18,7 @@ const overlay = document.querySelector("[data-overlay]");
 const scoreValue = document.querySelector("[data-score]");
 const statusValue = document.querySelector("[data-status]");
 const speedSelect = document.querySelector("[data-speed]");
+const soundSelect = document.querySelector("[data-sound]");
 const startButton = document.querySelector("[data-start]");
 const restartButton = document.querySelector("[data-restart]");
 const controlButtons = document.querySelectorAll("[data-direction]");
@@ -36,6 +38,10 @@ function getAudioContext() {
 }
 
 function unlockAudio() {
+  if (!state.soundEnabled) {
+    return;
+  }
+
   const context = getAudioContext();
   if (context && context.state === "suspended") {
     context.resume().catch(() => {});
@@ -43,6 +49,10 @@ function unlockAudio() {
 }
 
 function playTone(frequency, duration, type, volume, when = 0) {
+  if (!state.soundEnabled) {
+    return;
+  }
+
   const context = getAudioContext();
   if (!context) {
     return;
@@ -195,6 +205,7 @@ function render() {
 
   scoreValue.textContent = String(state.game.score);
   speedSelect.value = state.speed;
+  soundSelect.value = state.soundEnabled ? "on" : "off";
   overlay.hidden = state.game.status !== "idle";
 
   if (state.game.status === "game-over") {
@@ -249,6 +260,9 @@ speedSelect.addEventListener("change", () => {
   if (state.game.status === "running") {
     startLoop();
   }
+});
+soundSelect.addEventListener("change", () => {
+  state.soundEnabled = soundSelect.value === "on";
 });
 
 controlButtons.forEach((button) => {
