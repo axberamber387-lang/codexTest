@@ -20,11 +20,80 @@ const speedSelect = document.querySelector("[data-speed]");
 const startButton = document.querySelector("[data-start]");
 const restartButton = document.querySelector("[data-restart]");
 const controlButtons = document.querySelectorAll("[data-direction]");
+let audioContext = null;
+
+function getAudioContext() {
+  if (!window.AudioContext && !window.webkitAudioContext) {
+    return null;
+  }
+
+  if (!audioContext) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    audioContext = new AudioContextClass();
+  }
+
+  return audioContext;
+}
+
+function unlockAudio() {
+  const context = getAudioContext();
+  if (context && context.state === "suspended") {
+    context.resume().catch(() => {});
+  }
+}
+
+function playTone(frequency, duration, type, volume, when = 0) {
+  const context = getAudioContext();
+  if (!context) {
+    return;
+  }
+
+  const startAt = context.currentTime + when;
+  const oscillator = context.createOscillator();
+  const gainNode = context.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, startAt);
+  gainNode.gain.setValueAtTime(0.0001, startAt);
+  gainNode.gain.exponentialRampToValueAtTime(volume, startAt + 0.01);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(context.destination);
+
+  oscillator.start(startAt);
+  oscillator.stop(startAt + duration);
+}
+
+function playFoodSound() {
+  unlockAudio();
+  playTone(660, 0.08, "square", 0.05);
+  playTone(880, 0.1, "square", 0.04, 0.05);
+}
+
+function playGameOverSound() {
+  unlockAudio();
+  playTone(220, 0.18, "sawtooth", 0.05);
+  playTone(165, 0.28, "triangle", 0.04, 0.08);
+}
 
 function startLoop() {
   stopLoop();
   state.timerId = window.setInterval(() => {
+    const previousGame = state.game;
     state.game = advanceGame(state.game);
+
+    if (state.game.score > previousGame.score) {
+      playFoodSound();
+    }
+
+    if (
+      previousGame.status !== "game-over" &&
+      state.game.status === "game-over"
+    ) {
+      playGameOverSound();
+    }
+
     render();
 
     if (state.game.status === "game-over") {
@@ -47,6 +116,7 @@ function restartGame() {
 }
 
 function startGame() {
+  unlockAudio();
   state.game = {
     ...createInitialState(),
     status: "running"
@@ -60,6 +130,7 @@ function resumeGame() {
     return;
   }
 
+  unlockAudio();
   state.game = {
     ...state.game,
     status: "running"
@@ -138,6 +209,8 @@ function render() {
 }
 
 window.addEventListener("keydown", (event) => {
+  unlockAudio();
+
   if (event.code === "Space") {
     event.preventDefault();
     togglePause();
