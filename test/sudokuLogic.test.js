@@ -2,19 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  clearSudokuEntries,
   createSudokuState,
   getSudokuStatus,
   isSudokuSolved,
   setSudokuCellValue
 } from "../src/sudokuLogic.js";
 
-test("createSudokuState returns a puzzle with empty entries", () => {
+test("createSudokuState returns a generated puzzle with blank entries", () => {
   const state = createSudokuState(() => 0);
+  const clueCount = state.puzzle.flat().filter((value) => value !== 0).length;
 
   assert.equal(state.difficultyLabel, "Easy");
   assert.equal(state.entries[0][0], 0);
-  assert.equal(state.puzzle[0][2], 0);
-  assert.equal(state.solution[0][2], 4);
+  assert.equal(clueCount, 40);
+  assert.equal(state.solution.flat().every((value) => value >= 1 && value <= 9), true);
 });
 
 test("setSudokuCellValue ignores fixed cells", () => {
@@ -27,12 +29,34 @@ test("setSudokuCellValue ignores fixed cells", () => {
 
 test("setSudokuCellValue stores editable values and tracks conflicts", () => {
   const state = createSudokuState(() => 0);
-  const wrong = setSudokuCellValue(state, 0, 2, 9);
-  const corrected = setSudokuCellValue(wrong, 0, 2, 4);
+  const editableCell = state.puzzle
+    .flatMap((row, rowIndex) =>
+      row.map((value, colIndex) => ({ row: rowIndex, col: colIndex, value }))
+    )
+    .find((cell) => cell.value === 0);
+  const wrongValue =
+    state.solution[editableCell.row][editableCell.col] === 9 ? 8 : 9;
+  const wrong = setSudokuCellValue(
+    state,
+    editableCell.row,
+    editableCell.col,
+    wrongValue
+  );
+  const corrected = setSudokuCellValue(
+    wrong,
+    editableCell.row,
+    editableCell.col,
+    state.solution[editableCell.row][editableCell.col]
+  );
 
-  assert.equal(wrong.entries[0][2], 9);
-  assert.deepEqual(wrong.conflicts, [{ row: 0, col: 2 }]);
-  assert.equal(corrected.entries[0][2], 4);
+  assert.equal(wrong.entries[editableCell.row][editableCell.col], wrongValue);
+  assert.deepEqual(wrong.conflicts, [
+    { row: editableCell.row, col: editableCell.col }
+  ]);
+  assert.equal(
+    corrected.entries[editableCell.row][editableCell.col],
+    state.solution[editableCell.row][editableCell.col]
+  );
   assert.deepEqual(corrected.conflicts, []);
 });
 
@@ -53,13 +77,52 @@ test("isSudokuSolved becomes true when all empty cells match the solution", () =
 
 test("getSudokuStatus reflects idle, conflict, and guided input states", () => {
   const initial = createSudokuState(() => 0);
+  const editableCell = initial.puzzle
+    .flatMap((row, rowIndex) =>
+      row.map((value, colIndex) => ({ row: rowIndex, col: colIndex, value }))
+    )
+    .find((cell) => cell.value === 0);
   const selected = {
     ...initial,
-    selectedCell: { row: 0, col: 2 }
+    selectedCell: { row: editableCell.row, col: editableCell.col }
   };
-  const conflicted = setSudokuCellValue(selected, 0, 2, 9);
+  const wrongValue =
+    initial.solution[editableCell.row][editableCell.col] === 9 ? 8 : 9;
+  const conflicted = setSudokuCellValue(
+    selected,
+    editableCell.row,
+    editableCell.col,
+    wrongValue
+  );
 
   assert.equal(getSudokuStatus(initial), "Select a cell to begin");
   assert.equal(getSudokuStatus(selected), "Type 1-9, or Delete to clear");
   assert.equal(getSudokuStatus(conflicted), "Check highlighted cells");
+});
+
+test("clearSudokuEntries removes all player-entered values and conflicts", () => {
+  const initial = createSudokuState(() => 0);
+  const editableCells = initial.puzzle
+    .flatMap((row, rowIndex) =>
+      row.map((value, colIndex) => ({ row: rowIndex, col: colIndex, value }))
+    )
+    .filter((cell) => cell.value === 0)
+    .slice(0, 2);
+  let state = setSudokuCellValue(
+    initial,
+    editableCells[0].row,
+    editableCells[0].col,
+    initial.solution[editableCells[0].row][editableCells[0].col]
+  );
+  state = setSudokuCellValue(
+    state,
+    editableCells[1].row,
+    editableCells[1].col,
+    initial.solution[editableCells[1].row][editableCells[1].col] === 9 ? 8 : 9
+  );
+
+  const cleared = clearSudokuEntries(state);
+
+  assert.equal(cleared.entries.flat().every((value) => value === 0), true);
+  assert.deepEqual(cleared.conflicts, []);
 });

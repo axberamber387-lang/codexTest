@@ -1,5 +1,6 @@
 import { advanceGame, createInitialState, GRID_SIZE, queueDirection } from "./snakeLogic.js";
 import {
+  clearSudokuEntries,
   createSudokuState,
   getSudokuStatus,
   setSudokuCellValue
@@ -60,6 +61,7 @@ const sudokuStatus = document.querySelector("[data-sudoku-status]");
 const sudokuDifficulty = document.querySelector("[data-sudoku-difficulty]");
 const sudokuNewGameButton = document.querySelector("[data-sudoku-new]");
 const sudokuClearButton = document.querySelector("[data-sudoku-clear]");
+const sudokuClearAllButton = document.querySelector("[data-sudoku-clear-all]");
 
 let audioContext = null;
 
@@ -538,6 +540,11 @@ sudokuClearButton.addEventListener("click", () => {
   }
 
   handleSudokuInput(0);
+});
+
+sudokuClearAllButton.addEventListener("click", () => {
+  state.sudoku = clearSudokuEntries(state.sudoku);
+  renderSudoku();
 });
 
 render();
