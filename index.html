@@ -54,7 +54,7 @@
             </label>
             <label class="panel speed-control">
               Sound:
-              <select data-sound>
+              <select data-sound-toggle>
                 <option value="on" selected>On</option>
                 <option value="off">Off</option>
               </select>
@@ -94,12 +94,48 @@
 
         <section class="game-screen" data-sudoku-screen hidden>
           <div class="meta">
+            <label class="panel speed-control">
+              Difficulty:
+              <select data-sudoku-difficulty-select>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">High</option>
+              </select>
+            </label>
             <div class="panel">Difficulty: <strong data-sudoku-difficulty>Easy</strong></div>
             <div class="panel">Status: <strong data-sudoku-status>Select a cell to begin</strong></div>
+            <label class="panel speed-control">
+              Sound:
+              <select data-sound-toggle>
+                <option value="on" selected>On</option>
+                <option value="off">Off</option>
+              </select>
+            </label>
           </div>
 
           <section class="sudoku-wrap panel">
-            <div class="sudoku-board" data-sudoku-board aria-label="Sudoku board"></div>
+            <div class="sudoku-playfield">
+              <div class="sudoku-board" data-sudoku-board aria-label="Sudoku board"></div>
+              <div class="sudoku-victory" data-sudoku-victory hidden>
+                <div class="fireworks fireworks-left" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="sudoku-victory-card">
+                  <h2 class="overlay-title">Sudoku solved</h2>
+                  <p class="note">Want another puzzle, a tougher challenge, or to head back to the game menu?</p>
+                  <div class="button-row victory-actions">
+                    <button class="restart" type="button" data-sudoku-repeat>New game</button>
+                    <button class="restart" type="button" data-sudoku-increase>Increase difficulty</button>
+                    <button class="restart" type="button" data-sudoku-menu>Back to menu</button>
+                  </div>
+                </div>
+                <div class="fireworks fireworks-right" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
           </section>
 
           <div class="panel action-panel">

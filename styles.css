@@ -291,6 +291,10 @@ body {
   padding: 1rem;
 }
 
+.sudoku-playfield {
+  position: relative;
+}
+
 .sudoku-board {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -332,6 +336,81 @@ body {
   border-bottom: 2px solid var(--panel-border);
 }
 
+.sudoku-victory {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(3rem, 1fr) minmax(0, 22rem) minmax(3rem, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--overlay-bg) 92%, transparent);
+}
+
+.sudoku-victory[hidden] {
+  display: none;
+}
+
+.sudoku-victory-card {
+  border: 2px solid var(--panel-border);
+  background: var(--panel-bg);
+  padding: 1rem;
+  text-align: center;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.victory-actions {
+  justify-content: center;
+}
+
+.fireworks {
+  position: relative;
+  min-height: 14rem;
+}
+
+.fireworks span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-left: -0.275rem;
+  margin-top: -0.275rem;
+  border-radius: 999px;
+  background: var(--food-color);
+  animation: fireworks-burst 1.7s infinite ease-out;
+}
+
+.fireworks span:nth-child(2n) {
+  background: var(--snake-body);
+}
+
+.fireworks span:nth-child(1) { --tx: -3.4rem; --ty: -4.8rem; animation-delay: 0s; }
+.fireworks span:nth-child(2) { --tx: -1rem; --ty: -5.6rem; animation-delay: 0.18s; }
+.fireworks span:nth-child(3) { --tx: 2.7rem; --ty: -4rem; animation-delay: 0.34s; }
+.fireworks span:nth-child(4) { --tx: 4.2rem; --ty: -1.4rem; animation-delay: 0.5s; }
+.fireworks span:nth-child(5) { --tx: 3.4rem; --ty: 3.2rem; animation-delay: 0.2s; }
+.fireworks span:nth-child(6) { --tx: 0.8rem; --ty: 4.9rem; animation-delay: 0.44s; }
+.fireworks span:nth-child(7) { --tx: -2.9rem; --ty: 4rem; animation-delay: 0.62s; }
+.fireworks span:nth-child(8) { --tx: -4.6rem; --ty: 0.9rem; animation-delay: 0.76s; }
+
+@keyframes fireworks-burst {
+  0% {
+    transform: translate(0, 0) scale(0.2);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(1);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 640px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -350,5 +429,13 @@ body {
 
   .button-row {
     flex-direction: column;
+  }
+
+  .sudoku-victory {
+    grid-template-columns: 1fr;
+  }
+
+  .fireworks {
+    display: none;
   }
 }

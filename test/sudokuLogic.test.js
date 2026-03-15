@@ -4,23 +4,25 @@ import assert from "node:assert/strict";
 import {
   clearSudokuEntries,
   createSudokuState,
+  getNextSudokuDifficultyKey,
   getSudokuStatus,
   isSudokuSolved,
   setSudokuCellValue
 } from "../src/sudokuLogic.js";
 
 test("createSudokuState returns a generated puzzle with blank entries", () => {
-  const state = createSudokuState(() => 0);
+  const state = createSudokuState({ difficultyKey: "easy", random: () => 0 });
   const clueCount = state.puzzle.flat().filter((value) => value !== 0).length;
 
   assert.equal(state.difficultyLabel, "Easy");
+  assert.equal(state.difficultyKey, "easy");
   assert.equal(state.entries[0][0], 0);
   assert.equal(clueCount, 40);
   assert.equal(state.solution.flat().every((value) => value >= 1 && value <= 9), true);
 });
 
 test("setSudokuCellValue ignores fixed cells", () => {
-  const state = createSudokuState(() => 0);
+  const state = createSudokuState({ difficultyKey: "easy", random: () => 0 });
   const next = setSudokuCellValue(state, 0, 0, 9);
 
   assert.equal(next.entries[0][0], 0);
@@ -28,7 +30,7 @@ test("setSudokuCellValue ignores fixed cells", () => {
 });
 
 test("setSudokuCellValue stores editable values and tracks conflicts", () => {
-  const state = createSudokuState(() => 0);
+  const state = createSudokuState({ difficultyKey: "easy", random: () => 0 });
   const editableCell = state.puzzle
     .flatMap((row, rowIndex) =>
       row.map((value, colIndex) => ({ row: rowIndex, col: colIndex, value }))
@@ -61,7 +63,7 @@ test("setSudokuCellValue stores editable values and tracks conflicts", () => {
 });
 
 test("isSudokuSolved becomes true when all empty cells match the solution", () => {
-  let state = createSudokuState(() => 0);
+  let state = createSudokuState({ difficultyKey: "easy", random: () => 0 });
 
   for (let row = 0; row < 9; row += 1) {
     for (let col = 0; col < 9; col += 1) {
@@ -76,7 +78,7 @@ test("isSudokuSolved becomes true when all empty cells match the solution", () =
 });
 
 test("getSudokuStatus reflects idle, conflict, and guided input states", () => {
-  const initial = createSudokuState(() => 0);
+  const initial = createSudokuState({ difficultyKey: "easy", random: () => 0 });
   const editableCell = initial.puzzle
     .flatMap((row, rowIndex) =>
       row.map((value, colIndex) => ({ row: rowIndex, col: colIndex, value }))
@@ -101,7 +103,7 @@ test("getSudokuStatus reflects idle, conflict, and guided input states", () => {
 });
 
 test("clearSudokuEntries removes all player-entered values and conflicts", () => {
-  const initial = createSudokuState(() => 0);
+  const initial = createSudokuState({ difficultyKey: "easy", random: () => 0 });
   const editableCells = initial.puzzle
     .flatMap((row, rowIndex) =>
       row.map((value, colIndex) => ({ row: rowIndex, col: colIndex, value }))
@@ -125,4 +127,19 @@ test("clearSudokuEntries removes all player-entered values and conflicts", () =>
 
   assert.equal(cleared.entries.flat().every((value) => value === 0), true);
   assert.deepEqual(cleared.conflicts, []);
+});
+
+test("createSudokuState supports the high difficulty level", () => {
+  const state = createSudokuState({ difficultyKey: "hard", random: () => 0 });
+  const clueCount = state.puzzle.flat().filter((value) => value !== 0).length;
+
+  assert.equal(state.difficultyLabel, "High");
+  assert.equal(state.difficultyKey, "hard");
+  assert.equal(clueCount, 26);
+});
+
+test("getNextSudokuDifficultyKey advances until high and then stays there", () => {
+  assert.equal(getNextSudokuDifficultyKey("easy"), "medium");
+  assert.equal(getNextSudokuDifficultyKey("medium"), "hard");
+  assert.equal(getNextSudokuDifficultyKey("hard"), "hard");
 });

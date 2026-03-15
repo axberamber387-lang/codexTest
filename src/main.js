@@ -2,7 +2,9 @@ import { advanceGame, createInitialState, GRID_SIZE, queueDirection } from "./sn
 import {
   clearSudokuEntries,
   createSudokuState,
+  getNextSudokuDifficultyKey,
   getSudokuStatus,
+  isSudokuSolved,
   setSudokuCellValue
 } from "./sudokuLogic.js";
 
@@ -12,8 +14,8 @@ const SPEED_TICKS = {
   fast: 90
 };
 
-const MUSIC_STEP_MS = 180;
-const MUSIC_PATTERN = [
+const SNAKE_MUSIC_STEP_MS = 180;
+const SNAKE_MUSIC_PATTERN = [
   { frequency: 523.25, duration: 0.12 },
   { frequency: 659.25, duration: 0.12 },
   { frequency: 783.99, duration: 0.12 },
@@ -24,18 +26,47 @@ const MUSIC_PATTERN = [
   { frequency: 698.46, duration: 0.12 }
 ];
 
+const SUDOKU_MUSIC_STEP_MS = 650;
+const SUDOKU_TRACK_CHANGE_MS = 120000;
+const SUDOKU_TRACKS = [
+  [
+    { melody: 261.63, bass: 130.81, harmony: 392.0, duration: 0.48 },
+    { melody: 293.66, bass: 146.83, harmony: 440.0, duration: 0.42 },
+    { melody: 329.63, bass: 164.81, harmony: 493.88, duration: 0.52 },
+    { melody: 293.66, bass: 146.83, harmony: 440.0, duration: 0.44 }
+  ],
+  [
+    { melody: 220.0, bass: 110.0, harmony: 329.63, duration: 0.46 },
+    { melody: 246.94, bass: 123.47, harmony: 369.99, duration: 0.44 },
+    { melody: 293.66, bass: 146.83, harmony: 440.0, duration: 0.5 },
+    { melody: 246.94, bass: 123.47, harmony: 392.0, duration: 0.46 }
+  ],
+  [
+    { melody: 196.0, bass: 98.0, harmony: 293.66, duration: 0.52 },
+    { melody: 220.0, bass: 110.0, harmony: 329.63, duration: 0.48 },
+    { melody: 261.63, bass: 130.81, harmony: 392.0, duration: 0.5 },
+    { melody: 220.0, bass: 110.0, harmony: 329.63, duration: 0.44 }
+  ]
+];
+
 const state = {
   currentView: "menu",
   theme: "default",
+  soundEnabled: true,
   snake: {
     game: createInitialState(),
     timerId: null,
     speed: "normal",
-    soundEnabled: true,
     musicTimerId: null,
     musicStep: 0
   },
-  sudoku: createSudokuState()
+  sudoku: createSudokuState({ difficultyKey: "easy" }),
+  sudokuAudio: {
+    musicTimerId: null,
+    trackTimerId: null,
+    musicStep: 0,
+    trackIndex: 0
+  }
 };
 
 const themeSelect = document.querySelector("[data-theme]");
@@ -51,7 +82,7 @@ const overlay = document.querySelector("[data-overlay]");
 const scoreValue = document.querySelector("[data-score]");
 const statusValue = document.querySelector("[data-status]");
 const speedSelect = document.querySelector("[data-speed]");
-const soundSelect = document.querySelector("[data-sound]");
+const soundToggles = document.querySelectorAll("[data-sound-toggle]");
 const startButton = document.querySelector("[data-start]");
 const restartButton = document.querySelector("[data-restart]");
 const controlButtons = document.querySelectorAll("[data-direction]");
@@ -59,11 +90,20 @@ const controlButtons = document.querySelectorAll("[data-direction]");
 const sudokuBoard = document.querySelector("[data-sudoku-board]");
 const sudokuStatus = document.querySelector("[data-sudoku-status]");
 const sudokuDifficulty = document.querySelector("[data-sudoku-difficulty]");
+const sudokuDifficultySelect = document.querySelector("[data-sudoku-difficulty-select]");
 const sudokuNewGameButton = document.querySelector("[data-sudoku-new]");
 const sudokuClearButton = document.querySelector("[data-sudoku-clear]");
 const sudokuClearAllButton = document.querySelector("[data-sudoku-clear-all]");
+const sudokuVictory = document.querySelector("[data-sudoku-victory]");
+const sudokuVictoryRepeat = document.querySelector("[data-sudoku-repeat]");
+const sudokuVictoryIncrease = document.querySelector("[data-sudoku-increase]");
+const sudokuVictoryMenu = document.querySelector("[data-sudoku-menu]");
 
 let audioContext = null;
+
+function createSudokuGame(difficultyKey = state.sudoku.difficultyKey) {
+  return createSudokuState({ difficultyKey });
+}
 
 function getAudioContext() {
   if (!window.AudioContext && !window.webkitAudioContext) {
@@ -79,7 +119,7 @@ function getAudioContext() {
 }
 
 function unlockAudio() {
-  if (!state.snake.soundEnabled) {
+  if (!state.soundEnabled) {
     return;
   }
 
@@ -90,7 +130,7 @@ function unlockAudio() {
 }
 
 function playTone(frequency, duration, type, volume, when = 0) {
-  if (!state.snake.soundEnabled) {
+  if (!state.soundEnabled) {
     return;
   }
 
@@ -116,8 +156,8 @@ function playTone(frequency, duration, type, volume, when = 0) {
   oscillator.stop(startAt + duration);
 }
 
-function playMusicStep() {
-  if (!state.snake.soundEnabled || state.currentView !== "snake") {
+function playSnakeMusicStep() {
+  if (!state.soundEnabled || state.currentView !== "snake") {
     return;
   }
 
@@ -125,10 +165,10 @@ function playMusicStep() {
     return;
   }
 
-  const note = MUSIC_PATTERN[state.snake.musicStep];
+  const note = SNAKE_MUSIC_PATTERN[state.snake.musicStep];
   playTone(note.frequency, note.duration, "square", 0.025);
   playTone(note.frequency / 2, Math.max(0.08, note.duration - 0.02), "triangle", 0.012);
-  state.snake.musicStep = (state.snake.musicStep + 1) % MUSIC_PATTERN.length;
+  state.snake.musicStep = (state.snake.musicStep + 1) % SNAKE_MUSIC_PATTERN.length;
 }
 
 function stopSnakeMusicLoop() {
@@ -141,7 +181,7 @@ function stopSnakeMusicLoop() {
 function startSnakeMusicLoop() {
   stopSnakeMusicLoop();
 
-  if (!state.snake.soundEnabled || state.currentView !== "snake") {
+  if (!state.soundEnabled || state.currentView !== "snake") {
     return;
   }
 
@@ -149,8 +189,60 @@ function startSnakeMusicLoop() {
     return;
   }
 
-  playMusicStep();
-  state.snake.musicTimerId = window.setInterval(playMusicStep, MUSIC_STEP_MS);
+  playSnakeMusicStep();
+  state.snake.musicTimerId = window.setInterval(playSnakeMusicStep, SNAKE_MUSIC_STEP_MS);
+}
+
+function playSudokuMusicStep() {
+  if (!state.soundEnabled || state.currentView !== "sudoku") {
+    return;
+  }
+
+  if (isSudokuSolved(state.sudoku)) {
+    return;
+  }
+
+  const track = SUDOKU_TRACKS[state.sudokuAudio.trackIndex];
+  const note = track[state.sudokuAudio.musicStep];
+  playTone(note.melody, note.duration, "square", 0.016);
+  playTone(note.bass, note.duration + 0.08, "triangle", 0.01);
+  playTone(note.harmony, Math.max(0.18, note.duration - 0.08), "square", 0.008, 0.16);
+  state.sudokuAudio.musicStep = (state.sudokuAudio.musicStep + 1) % track.length;
+}
+
+function rotateSudokuTrack() {
+  state.sudokuAudio.trackIndex =
+    (state.sudokuAudio.trackIndex + 1) % SUDOKU_TRACKS.length;
+  state.sudokuAudio.musicStep = 0;
+}
+
+function stopSudokuMusicLoop() {
+  if (state.sudokuAudio.musicTimerId !== null) {
+    window.clearInterval(state.sudokuAudio.musicTimerId);
+    state.sudokuAudio.musicTimerId = null;
+  }
+
+  if (state.sudokuAudio.trackTimerId !== null) {
+    window.clearInterval(state.sudokuAudio.trackTimerId);
+    state.sudokuAudio.trackTimerId = null;
+  }
+}
+
+function startSudokuMusicLoop() {
+  stopSudokuMusicLoop();
+
+  if (!state.soundEnabled || state.currentView !== "sudoku" || isSudokuSolved(state.sudoku)) {
+    return;
+  }
+
+  playSudokuMusicStep();
+  state.sudokuAudio.musicTimerId = window.setInterval(
+    playSudokuMusicStep,
+    SUDOKU_MUSIC_STEP_MS
+  );
+  state.sudokuAudio.trackTimerId = window.setInterval(() => {
+    rotateSudokuTrack();
+  }, SUDOKU_TRACK_CHANGE_MS);
 }
 
 function playFoodSound() {
@@ -163,6 +255,13 @@ function playGameOverSound() {
   unlockAudio();
   playTone(220, 0.18, "sawtooth", 0.05);
   playTone(165, 0.28, "triangle", 0.04, 0.08);
+}
+
+function playSudokuSolvedSound() {
+  unlockAudio();
+  playTone(523.25, 0.12, "square", 0.03);
+  playTone(659.25, 0.14, "square", 0.03, 0.12);
+  playTone(783.99, 0.16, "square", 0.025, 0.24);
 }
 
 function stopSnakeLoop() {
@@ -267,6 +366,39 @@ function setSnakeDirection(direction) {
   renderSnake();
 }
 
+function resetSudokuGame(difficultyKey = state.sudoku.difficultyKey) {
+  state.sudoku = createSudokuGame(difficultyKey);
+  state.sudokuAudio.musicStep = 0;
+  if (state.currentView === "sudoku") {
+    startSudokuMusicLoop();
+  }
+}
+
+function handleSolvedSudoku() {
+  stopSudokuMusicLoop();
+  playSudokuSolvedSound();
+}
+
+function handleSudokuInput(value) {
+  if (state.currentView !== "sudoku" || !state.sudoku.selectedCell || isSudokuSolved(state.sudoku)) {
+    return;
+  }
+
+  const previousSolved = isSudokuSolved(state.sudoku);
+  state.sudoku = setSudokuCellValue(
+    state.sudoku,
+    state.sudoku.selectedCell.row,
+    state.sudoku.selectedCell.col,
+    value
+  );
+
+  if (!previousSolved && isSudokuSolved(state.sudoku)) {
+    handleSolvedSudoku();
+  }
+
+  renderSudoku();
+}
+
 function openView(view) {
   if (view === state.currentView) {
     return;
@@ -276,10 +408,18 @@ function openView(view) {
     stopSnakeLoop();
   }
 
+  if (state.currentView === "sudoku" && view !== "sudoku") {
+    stopSudokuMusicLoop();
+  }
+
   state.currentView = view;
 
   if (view === "snake" && state.snake.game.status === "running") {
     startSnakeLoop();
+  }
+
+  if (view === "sudoku") {
+    startSudokuMusicLoop();
   }
 
   render();
@@ -320,7 +460,6 @@ function renderSnake() {
 
   scoreValue.textContent = String(state.snake.game.score);
   speedSelect.value = state.snake.speed;
-  soundSelect.value = state.snake.soundEnabled ? "on" : "off";
   overlay.hidden = state.snake.game.status !== "idle";
 
   if (state.snake.game.status === "game-over") {
@@ -379,6 +518,10 @@ function renderSudoku() {
       }
 
       button.addEventListener("click", () => {
+        if (isSudokuSolved(state.sudoku)) {
+          return;
+        }
+
         state.sudoku = {
           ...state.sudoku,
           selectedCell: { row, col }
@@ -391,12 +534,18 @@ function renderSudoku() {
   }
 
   sudokuDifficulty.textContent = state.sudoku.difficultyLabel;
+  sudokuDifficultySelect.value = state.sudoku.difficultyKey;
   sudokuStatus.textContent = getSudokuStatus(state.sudoku);
+  sudokuVictory.hidden = !isSudokuSolved(state.sudoku);
+  sudokuVictoryIncrease.disabled = state.sudoku.difficultyKey === "hard";
 }
 
 function render() {
   document.body.dataset.theme = state.theme;
   themeSelect.value = state.theme;
+  soundToggles.forEach((toggle) => {
+    toggle.value = state.soundEnabled ? "on" : "off";
+  });
 
   appTitle.textContent =
     state.currentView === "snake"
@@ -416,20 +565,6 @@ function render() {
   if (state.currentView === "sudoku") {
     renderSudoku();
   }
-}
-
-function handleSudokuInput(value) {
-  if (state.currentView !== "sudoku" || !state.sudoku.selectedCell) {
-    return;
-  }
-
-  state.sudoku = setSudokuCellValue(
-    state.sudoku,
-    state.sudoku.selectedCell.row,
-    state.sudoku.selectedCell.col,
-    value
-  );
-  renderSudoku();
 }
 
 window.addEventListener("keydown", (event) => {
@@ -468,6 +603,8 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (state.currentView === "sudoku") {
+    unlockAudio();
+
     if (event.key >= "1" && event.key <= "9") {
       event.preventDefault();
       handleSudokuInput(Number(event.key));
@@ -506,16 +643,29 @@ speedSelect.addEventListener("change", () => {
   }
 });
 
-soundSelect.addEventListener("change", () => {
-  state.snake.soundEnabled = soundSelect.value === "on";
+soundToggles.forEach((toggle) => {
+  toggle.addEventListener("change", () => {
+    state.soundEnabled = toggle.value === "on";
 
-  if (state.snake.soundEnabled) {
-    unlockAudio();
-    startSnakeMusicLoop();
-    return;
-  }
+    if (state.soundEnabled) {
+      unlockAudio();
 
-  stopSnakeMusicLoop();
+      if (state.currentView === "snake") {
+        startSnakeMusicLoop();
+      }
+
+      if (state.currentView === "sudoku") {
+        startSudokuMusicLoop();
+      }
+
+      render();
+      return;
+    }
+
+    stopSnakeMusicLoop();
+    stopSudokuMusicLoop();
+    render();
+  });
 });
 
 themeSelect.addEventListener("change", () => {
@@ -529,8 +679,13 @@ controlButtons.forEach((button) => {
   });
 });
 
+sudokuDifficultySelect.addEventListener("change", () => {
+  resetSudokuGame(sudokuDifficultySelect.value);
+  renderSudoku();
+});
+
 sudokuNewGameButton.addEventListener("click", () => {
-  state.sudoku = createSudokuState();
+  resetSudokuGame(state.sudoku.difficultyKey);
   renderSudoku();
 });
 
@@ -545,6 +700,20 @@ sudokuClearButton.addEventListener("click", () => {
 sudokuClearAllButton.addEventListener("click", () => {
   state.sudoku = clearSudokuEntries(state.sudoku);
   renderSudoku();
+});
+
+sudokuVictoryRepeat.addEventListener("click", () => {
+  resetSudokuGame(state.sudoku.difficultyKey);
+  renderSudoku();
+});
+
+sudokuVictoryIncrease.addEventListener("click", () => {
+  resetSudokuGame(getNextSudokuDifficultyKey(state.sudoku.difficultyKey));
+  renderSudoku();
+});
+
+sudokuVictoryMenu.addEventListener("click", () => {
+  backToMenu();
 });
 
 render();

@@ -1,10 +1,12 @@
 const SUDOKU_SIZE = 9;
 const BLOCK_SIZE = 3;
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-const DIFFICULTIES = [
-  { difficultyLabel: "Easy", clues: 40 },
-  { difficultyLabel: "Medium", clues: 32 }
-];
+const DIFFICULTY_ORDER = ["easy", "medium", "hard"];
+const DIFFICULTIES = {
+  easy: { difficultyLabel: "Easy", clues: 40 },
+  medium: { difficultyLabel: "Medium", clues: 32 },
+  hard: { difficultyLabel: "High", clues: 26 }
+};
 
 function cloneGrid(grid) {
   return grid.map((row) => [...row]);
@@ -73,9 +75,11 @@ function removeClues(solution, clues, random = Math.random) {
   return puzzle;
 }
 
-export function createSudokuState(random = Math.random) {
-  const difficulty =
-    DIFFICULTIES[Math.floor(random() * DIFFICULTIES.length)];
+export function createSudokuState({
+  difficultyKey = "easy",
+  random = Math.random
+} = {}) {
+  const difficulty = DIFFICULTIES[difficultyKey] || DIFFICULTIES.easy;
   const solution = permuteSolvedBoard(random);
   const puzzle = removeClues(solution, difficulty.clues, random);
 
@@ -85,8 +89,18 @@ export function createSudokuState(random = Math.random) {
     entries: puzzle.map((row) => row.map(() => 0)),
     selectedCell: null,
     conflicts: [],
+    difficultyKey,
     difficultyLabel: difficulty.difficultyLabel
   };
+}
+
+export function getNextSudokuDifficultyKey(currentDifficultyKey) {
+  const currentIndex = DIFFICULTY_ORDER.indexOf(currentDifficultyKey);
+  if (currentIndex === -1 || currentIndex === DIFFICULTY_ORDER.length - 1) {
+    return DIFFICULTY_ORDER[DIFFICULTY_ORDER.length - 1];
+  }
+
+  return DIFFICULTY_ORDER[currentIndex + 1];
 }
 
 export function clearSudokuEntries(state) {
