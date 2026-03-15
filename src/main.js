@@ -23,7 +23,8 @@ const state = {
   speed: "normal",
   soundEnabled: true,
   musicTimerId: null,
-  musicStep: 0
+  musicStep: 0,
+  theme: "default"
 };
 
 const board = document.querySelector("[data-board]");
@@ -32,6 +33,7 @@ const scoreValue = document.querySelector("[data-score]");
 const statusValue = document.querySelector("[data-status]");
 const speedSelect = document.querySelector("[data-speed]");
 const soundSelect = document.querySelector("[data-sound]");
+const themeSelect = document.querySelector("[data-theme]");
 const startButton = document.querySelector("[data-start]");
 const restartButton = document.querySelector("[data-restart]");
 const controlButtons = document.querySelectorAll("[data-direction]");
@@ -255,6 +257,8 @@ function render() {
   scoreValue.textContent = String(state.game.score);
   speedSelect.value = state.speed;
   soundSelect.value = state.soundEnabled ? "on" : "off";
+  themeSelect.value = state.theme;
+  document.body.dataset.theme = state.theme;
   overlay.hidden = state.game.status !== "idle";
 
   if (state.game.status === "game-over") {
@@ -321,6 +325,10 @@ soundSelect.addEventListener("change", () => {
   }
 
   stopMusicLoop();
+});
+themeSelect.addEventListener("change", () => {
+  state.theme = themeSelect.value;
+  render();
 });
 
 controlButtons.forEach((button) => {

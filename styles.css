@@ -1,8 +1,57 @@
 :root {
   color-scheme: light;
   font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-  background: #f4f1e8;
-  color: #1f241f;
+  --page-bg: #f4f1e8;
+  --text-color: #1f241f;
+  --panel-bg: #fcfbf7;
+  --panel-border: #1f241f;
+  --board-bg: #d7ddc8;
+  --overlay-bg: rgba(244, 241, 232, 0.88);
+  --cell-border: rgba(31, 36, 31, 0.08);
+  --snake-body: #386641;
+  --snake-head: #1f4a28;
+  --food-color: #bc4749;
+  background: var(--page-bg);
+  color: var(--text-color);
+}
+
+body[data-theme="eggplant"] {
+  --page-bg: #efe7f3;
+  --text-color: #2b1734;
+  --panel-bg: #fbf5ff;
+  --panel-border: #5f3b73;
+  --board-bg: #d8c3e2;
+  --overlay-bg: rgba(239, 231, 243, 0.9);
+  --cell-border: rgba(95, 59, 115, 0.12);
+  --snake-body: #6d3f88;
+  --snake-head: #45205d;
+  --food-color: #c76b8a;
+}
+
+body[data-theme="barbie"] {
+  --page-bg: #ffe6f1;
+  --text-color: #5f2140;
+  --panel-bg: #fff7fb;
+  --panel-border: #d85b93;
+  --board-bg: #f9c9dc;
+  --overlay-bg: rgba(255, 230, 241, 0.9);
+  --cell-border: rgba(216, 91, 147, 0.14);
+  --snake-body: #e75480;
+  --snake-head: #b03060;
+  --food-color: #ff8fab;
+}
+
+body[data-theme="jaundice"] {
+  --page-bg: #fff4cc;
+  --text-color: #4b3b07;
+  --panel-bg: #fffbee;
+  --panel-border: #b88a16;
+  --board-bg: #f2dd7e;
+  --overlay-bg: rgba(255, 244, 204, 0.9);
+  --cell-border: rgba(184, 138, 22, 0.15);
+  --snake-body: #c99700;
+  --snake-head: #8f6600;
+  --food-color: #f0b429;
 }
 
 * {
@@ -12,16 +61,52 @@
 body {
   margin: 0;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: var(--page-bg);
+  color: var(--text-color);
+}
+
+.app-shell {
+  width: min(96vw, 68rem);
   display: grid;
-  place-items: center;
-  background: #f4f1e8;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+  padding: 1.5rem;
+}
+
+.sidebar {
+  position: sticky;
+  top: 1.5rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.sidebar-title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.theme-option {
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+}
+
+.theme-option select {
+  width: 100%;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: inherit;
+  font: inherit;
+  padding: 0.45rem 0.55rem;
 }
 
 .app {
-  width: min(92vw, 34rem);
+  width: min(100%, 34rem);
   display: grid;
   gap: 1rem;
-  padding: 1.5rem;
 }
 
 .header {
@@ -45,8 +130,8 @@ body {
 
 .panel {
   padding: 0.75rem 1rem;
-  border: 2px solid #1f241f;
-  background: #fcfbf7;
+  border: 2px solid var(--panel-border);
+  background: var(--panel-bg);
 }
 
 .speed-control {
@@ -56,8 +141,8 @@ body {
 }
 
 .speed-control select {
-  border: 1px solid #1f241f;
-  background: #fcfbf7;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
   color: inherit;
   font: inherit;
   padding: 0.25rem 0.4rem;
@@ -66,8 +151,8 @@ body {
 .board {
   display: grid;
   grid-template-columns: repeat(var(--grid-size), 1fr);
-  border: 2px solid #1f241f;
-  background: #d7ddc8;
+  border: 2px solid var(--panel-border);
+  background: var(--board-bg);
   aspect-ratio: 1 / 1;
 }
 
@@ -81,7 +166,7 @@ body {
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgba(244, 241, 232, 0.88);
+  background: var(--overlay-bg);
 }
 
 .overlay[hidden] {
@@ -91,8 +176,8 @@ body {
 .overlay-card {
   width: min(100%, 18rem);
   padding: 1rem;
-  border: 2px solid #1f241f;
-  background: #fcfbf7;
+  border: 2px solid var(--panel-border);
+  background: var(--panel-bg);
   text-align: center;
 }
 
@@ -102,19 +187,19 @@ body {
 }
 
 .cell {
-  border: 1px solid rgba(31, 36, 31, 0.08);
+  border: 1px solid var(--cell-border);
 }
 
 .cell-snake {
-  background: #386641;
+  background: var(--snake-body);
 }
 
 .cell-head {
-  background: #1f4a28;
+  background: var(--snake-head);
 }
 
 .cell-food {
-  background: #bc4749;
+  background: var(--food-color);
   border-radius: 999px;
 }
 
@@ -134,8 +219,8 @@ body {
 
 .controls button,
 .restart {
-  border: 2px solid #1f241f;
-  background: #fcfbf7;
+  border: 2px solid var(--panel-border);
+  background: var(--panel-bg);
   color: inherit;
   font: inherit;
   padding: 0.6rem;
@@ -152,8 +237,13 @@ body {
 }
 
 @media (max-width: 640px) {
-  .app {
+  .app-shell {
+    grid-template-columns: 1fr;
     padding: 1rem;
+  }
+
+  .sidebar {
+    position: static;
   }
 
   .header,
