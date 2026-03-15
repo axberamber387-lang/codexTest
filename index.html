@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1 class="title">Snake</h1>
+        <div class="meta">
+          <div class="panel">Score: <strong data-score>0</strong></div>
+          <div class="panel">Status: <strong data-status>Press an arrow key or WASD</strong></div>
+        </div>
+      </header>
+
+      <section class="board" data-board aria-label="Snake board"></section>
+
+      <footer class="footer">
+        <div class="controls" aria-label="On-screen controls">
+          <span class="spacer" aria-hidden="true"></span>
+          <button type="button" data-direction="up">Up</button>
+          <span class="spacer" aria-hidden="true"></span>
+          <button type="button" data-direction="left">Left</button>
+          <button type="button" data-direction="down">Down</button>
+          <button type="button" data-direction="right">Right</button>
+        </div>
+
+        <div class="panel">
+          <button class="restart" type="button" data-restart>Restart</button>
+          <p class="note">Use arrow keys or WASD to steer. The game ends on wall or self collision.</p>
+        </div>
+      </footer>
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
