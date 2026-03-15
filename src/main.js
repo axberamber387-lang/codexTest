@@ -5,12 +5,25 @@ const SPEED_TICKS = {
   normal: 140,
   fast: 90
 };
+const MUSIC_STEP_MS = 180;
+const MUSIC_PATTERN = [
+  { frequency: 523.25, duration: 0.12 },
+  { frequency: 659.25, duration: 0.12 },
+  { frequency: 783.99, duration: 0.12 },
+  { frequency: 659.25, duration: 0.12 },
+  { frequency: 587.33, duration: 0.12 },
+  { frequency: 698.46, duration: 0.12 },
+  { frequency: 880, duration: 0.16 },
+  { frequency: 698.46, duration: 0.12 }
+];
 
 const state = {
   game: createInitialState(),
   timerId: null,
   speed: "normal",
-  soundEnabled: true
+  soundEnabled: true,
+  musicTimerId: null,
+  musicStep: 0
 };
 
 const board = document.querySelector("[data-board]");
@@ -75,6 +88,35 @@ function playTone(frequency, duration, type, volume, when = 0) {
   oscillator.stop(startAt + duration);
 }
 
+function playMusicStep() {
+  if (!state.soundEnabled || state.game.status !== "running") {
+    return;
+  }
+
+  const note = MUSIC_PATTERN[state.musicStep];
+  playTone(note.frequency, note.duration, "square", 0.025);
+  playTone(note.frequency / 2, Math.max(0.08, note.duration - 0.02), "triangle", 0.012);
+  state.musicStep = (state.musicStep + 1) % MUSIC_PATTERN.length;
+}
+
+function stopMusicLoop() {
+  if (state.musicTimerId !== null) {
+    window.clearInterval(state.musicTimerId);
+    state.musicTimerId = null;
+  }
+}
+
+function startMusicLoop() {
+  stopMusicLoop();
+
+  if (!state.soundEnabled || state.game.status !== "running") {
+    return;
+  }
+
+  playMusicStep();
+  state.musicTimerId = window.setInterval(playMusicStep, MUSIC_STEP_MS);
+}
+
 function playFoodSound() {
   unlockAudio();
   playTone(660, 0.08, "square", 0.05);
@@ -101,6 +143,7 @@ function startLoop() {
       previousGame.status !== "game-over" &&
       state.game.status === "game-over"
     ) {
+      stopMusicLoop();
       playGameOverSound();
     }
 
@@ -117,22 +160,27 @@ function stopLoop() {
     window.clearInterval(state.timerId);
     state.timerId = null;
   }
+
+  stopMusicLoop();
 }
 
 function restartGame() {
   stopLoop();
+  state.musicStep = 0;
   state.game = createInitialState();
   render();
 }
 
 function startGame() {
   unlockAudio();
+  state.musicStep = 0;
   state.game = {
     ...createInitialState(),
     status: "running"
   };
   render();
   startLoop();
+  startMusicLoop();
 }
 
 function resumeGame() {
@@ -147,6 +195,7 @@ function resumeGame() {
   };
   render();
   startLoop();
+  startMusicLoop();
 }
 
 function togglePause() {
@@ -259,10 +308,19 @@ speedSelect.addEventListener("change", () => {
 
   if (state.game.status === "running") {
     startLoop();
+    startMusicLoop();
   }
 });
 soundSelect.addEventListener("change", () => {
   state.soundEnabled = soundSelect.value === "on";
+
+  if (state.soundEnabled) {
+    unlockAudio();
+    startMusicLoop();
+    return;
+  }
+
+  stopMusicLoop();
 });
 
 controlButtons.forEach((button) => {
