@@ -49,6 +49,20 @@ body {
   background: #fcfbf7;
 }
 
+.speed-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.speed-control select {
+  border: 1px solid #1f241f;
+  background: #fcfbf7;
+  color: inherit;
+  font: inherit;
+  padding: 0.25rem 0.4rem;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(var(--grid-size), 1fr);

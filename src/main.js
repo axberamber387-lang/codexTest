@@ -1,16 +1,22 @@
 import { advanceGame, createInitialState, GRID_SIZE, queueDirection } from "./snakeLogic.js";
 
-const TICK_MS = 140;
+const SPEED_TICKS = {
+  slow: 220,
+  normal: 140,
+  fast: 90
+};
 
 const state = {
   game: createInitialState(),
-  timerId: null
+  timerId: null,
+  speed: "normal"
 };
 
 const board = document.querySelector("[data-board]");
 const overlay = document.querySelector("[data-overlay]");
 const scoreValue = document.querySelector("[data-score]");
 const statusValue = document.querySelector("[data-status]");
+const speedSelect = document.querySelector("[data-speed]");
 const startButton = document.querySelector("[data-start]");
 const restartButton = document.querySelector("[data-restart]");
 const controlButtons = document.querySelectorAll("[data-direction]");
@@ -24,7 +30,7 @@ function startLoop() {
     if (state.game.status === "game-over") {
       stopLoop();
     }
-  }, TICK_MS);
+  }, SPEED_TICKS[state.speed]);
 }
 
 function stopLoop() {
@@ -88,6 +94,7 @@ function render() {
   }
 
   scoreValue.textContent = String(state.game.score);
+  speedSelect.value = state.speed;
   overlay.hidden = state.game.status !== "idle";
 
   if (state.game.status === "game-over") {
@@ -126,6 +133,13 @@ window.addEventListener("keydown", (event) => {
 
 startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", restartGame);
+speedSelect.addEventListener("change", () => {
+  state.speed = speedSelect.value;
+
+  if (state.game.status === "running") {
+    startLoop();
+  }
+});
 
 controlButtons.forEach((button) => {
   button.addEventListener("click", () => {

@@ -13,6 +13,14 @@
         <div class="meta">
           <div class="panel">Score: <strong data-score>0</strong></div>
           <div class="panel">Status: <strong data-status>Press Start game</strong></div>
+          <label class="panel speed-control">
+            Speed:
+            <select data-speed>
+              <option value="slow">Slow</option>
+              <option value="normal" selected>Normal</option>
+              <option value="fast">Fast</option>
+            </select>
+          </label>
         </div>
       </header>
 
@@ -21,7 +29,7 @@
         <div class="overlay" data-overlay>
           <div class="overlay-card">
             <h2 class="overlay-title">Start game</h2>
-            <p class="note">Press the button below, then use arrow keys or WASD to steer.</p>
+            <p class="note">Choose a speed, press Start game, then use arrow keys or WASD to steer.</p>
             <button class="restart" type="button" data-start>Start game</button>
           </div>
         </div>
