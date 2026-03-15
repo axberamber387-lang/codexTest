@@ -55,8 +55,37 @@ function startGame() {
   startLoop();
 }
 
+function resumeGame() {
+  if (state.game.status !== "paused") {
+    return;
+  }
+
+  state.game = {
+    ...state.game,
+    status: "running"
+  };
+  render();
+  startLoop();
+}
+
+function togglePause() {
+  if (state.game.status === "running") {
+    stopLoop();
+    state.game = {
+      ...state.game,
+      status: "paused"
+    };
+    render();
+    return;
+  }
+
+  if (state.game.status === "paused") {
+    resumeGame();
+  }
+}
+
 function setDirection(direction) {
-  if (state.game.status === "idle") {
+  if (state.game.status !== "running") {
     return;
   }
 
@@ -101,12 +130,20 @@ function render() {
     statusValue.textContent = "Game over";
   } else if (state.game.status === "idle") {
     statusValue.textContent = "Press Start game";
+  } else if (state.game.status === "paused") {
+    statusValue.textContent = "Paused";
   } else {
     statusValue.textContent = "Running";
   }
 }
 
 window.addEventListener("keydown", (event) => {
+  if (event.code === "Space") {
+    event.preventDefault();
+    togglePause();
+    return;
+  }
+
   const directionByKey = {
     ArrowUp: "up",
     ArrowDown: "down",
